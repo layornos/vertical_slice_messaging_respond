@@ -11,7 +11,6 @@ func main() {
 	topics := [4]string{"sitec/plant_one/sensors/a", "sitec/plant_one/sensors/b", "sitec/plant_two/sensors/a", "sitec/plant_two/sensors/b"}
 	broker := "tcp://localhost:1883"
 	id := "cep"
-	num := 30
 
 	opts := MQTT.NewClientOptions()
 	opts.AddBroker(broker)
@@ -35,8 +34,9 @@ func main() {
 			os.Exit(1)
 		}
 	}
+	goOn := true
 
-	for receiveCount < num*2 {
+	for goOn {
 		incoming := <-choke
 		fmt.Printf("RECEIVED TOPIC: %s MESSAGE: %s\n", incoming[0], incoming[1])
 		receiveCount++
