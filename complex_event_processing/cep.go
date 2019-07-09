@@ -19,9 +19,27 @@ type Sensor struct {
 }
 
 //
+type PlantError struct {
+	Plant string
+	Error string
+}
+
+//
 type aggregatedPlantTemperature struct {
 	SensorATemperature int
 	SensorBTemperature int
+}
+
+func publishError(client MQTT.Client, plant string) {
+	fmt.Println("---- doing publish ----")
+	errorData := PlantError{plant, "Plant is too hot!"}
+	payload, err := json.Marshal(errorData)
+	if err == nil {
+		fmt.Println(string(payload))
+		token := client.Publish("sitec/"+plant+"/error", 0, false, string(payload))
+		token.Wait()
+	}
+
 }
 
 func main() {
@@ -80,9 +98,11 @@ func main() {
 			}
 			if ((tempPlantOne.SensorATemperature + tempPlantOne.SensorBTemperature) / 2) > 90 {
 				fmt.Println("Warning: Temperature in Plant One is " + strconv.Itoa((tempPlantOne.SensorATemperature+tempPlantOne.SensorBTemperature)/2) + ", that is to high!")
+				publishError(client, "plant_one")
 			}
 			if ((tempPlantTwo.SensorATemperature + tempPlantTwo.SensorBTemperature) / 2) > 190 {
 				fmt.Println("Warning: Temperature in Plant Two is " + strconv.Itoa((tempPlantTwo.SensorATemperature+tempPlantTwo.SensorBTemperature)/2) + ", that is to high!")
+				publishError(client, "plant_two")
 			}
 			//fmt.Printf("RECEIVED TOPIC: %s MESSAGE: %s\n", incoming[0], incoming[1])
 		}

@@ -26,13 +26,14 @@ aside a {
 header{
     font-family: "Courier New", Courier, monospace;
     font-size: 4em;
-    font-weight: bold;
-    background: #abcabc;
+    
+    color: #ffffff;
+    background: #811022;
 }
 
 footer{
     font-family: "Courier New", Courier, monospace;
-    background: #dae9e2;
+    background: #811022;
 }
 
 header,
@@ -63,13 +64,13 @@ header{
   height: 20vh;
 }
 
-footer{
+/*footer{
     display: flex;
     align-items: center;
     justify-content: center;
     height: 5vh;
   }
-
+*/
 /*aside {
     background: #e4e5e5;
 }*/
@@ -83,4 +84,10 @@ article {
   height: auto;
 }
 
+#status_one{
+  color: #00b400
+}
 
+#status_two{
+  color: #00b400
+}
