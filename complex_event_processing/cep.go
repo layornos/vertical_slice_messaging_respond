@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"os"
 	"strconv"
@@ -43,6 +44,8 @@ func publishError(client MQTT.Client, plant string) {
 }
 
 func main() {
+	brokerFlag := flag.String("broker", "localhost", "URL to the desired broker")
+	flag.Parse()
 	topics := [4]string{"sitec/plant_one/sensors/a", "sitec/plant_one/sensors/b", "sitec/plant_two/sensors/a", "sitec/plant_two/sensors/b"}
 	var message Sensor
 	var tempPlantOne aggregatedPlantTemperature
@@ -53,7 +56,7 @@ func main() {
 	tempPlantTwo.SensorATemperature = -1
 	tempPlantTwo.SensorBTemperature = -1
 
-	broker := "tcp://localhost:1883"
+	broker := "tcp://" + *brokerFlag + ":1883"
 	id := "cep"
 
 	opts := MQTT.NewClientOptions()
