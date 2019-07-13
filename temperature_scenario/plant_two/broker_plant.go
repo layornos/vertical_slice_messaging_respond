@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"math/rand"
 	"time"
@@ -33,9 +34,11 @@ func publishSensor(client MQTT.Client, topic string, sensorID string) {
 }
 
 func main() {
+	brokerFlag := flag.String("broker", "localhost", "URL to the desired broker")
+	flag.Parse()
 	topicSensorA := "sitec/plant_two/sensors/a"
 	topicSensorB := "sitec/plant_two/sensors/b"
-	broker := "tcp://localhost:1883"
+	broker := "tcp://" + *brokerFlag + ":1883"
 	id := "plant_two"
 
 	opts := MQTT.NewClientOptions()
