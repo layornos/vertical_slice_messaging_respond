@@ -22,13 +22,17 @@ const (
 	SHUTDOWN_TIME      = 8 * 60.
 )
 
-// Setting up of the three queues in the system
+/*
+ * Setting up of the three queues in the system
+ * itemArrival is dedicated to collect the items that must be transported to the quality assurance
+ * checking is dedicated to collect the items that musst be checked by the quality assurance
+ * machinesToRepair are dedicated to collect machines that must be repaired before they can continue
+ */
 var itemArrivalQueue = godes.NewFIFOQueue("Item Arrival Queue")
 var checkingQueue = godes.NewFIFOQueue("Checking Queue")
-var faultyItemsQueue = godes.NewFIFOQueue("Repair Queue")
+var machinesToRepairQueue = godes.NewFIFOQueue("Machine Repair Queue")
 
 var arrivalOfItems = godes.NewExpDistr(true)
-var processOfItem = godes.NewNormalDistr(true)
 var checkOfItem = godes.NewNormalDistr(true)
 var repairOfRobot = godes.NewUniformDistr(true)
 var repairTimeOfOneRobot = godes.NewNormalDistr(true)
@@ -36,14 +40,16 @@ var repairTimeOfOneRobot = godes.NewNormalDistr(true)
 var robotAvailableSwt = godes.NewBooleanControl()
 var operatorAvailableSwt = godes.NewBooleanControl()
 var maintainerAvailableSwt = godes.NewBooleanControl()
+var qsAvailableSwt = godes.NewBooleanControl()
 
 var occupiedRobots = 0
 var busyOperators = 0
 var busyMaintainers = 0
+var busyQS = 0
 
-var robots *Robots
 var operators *Operators
 var maintainers *Maintainers
+var qs *QualityAssurance
 
 var itemCount = 0
 var itemsProcessed = 0
@@ -54,39 +60,22 @@ type Item struct {
 	*godes.Runner
 	id string
 }
+
 type Robots struct {
-	max int
+	*godes.Runner
+	id string
 }
 
 type Operators struct {
 	max int
 }
 
-type Maintainers struct {
+type QualityAssurance struct {
 	max int
 }
 
-func (robots *Robots) Catch(item *Item) {
-	for {
-		robotAvailableSwt.Wait(true)
-		if itemArrivalQueue.GetHead().(*Item).id == item.id {
-			break
-		} else {
-			godes.Yield()
-		}
-	}
-	occupiedRobots++
-	//fmt.Println(occupiedRobots)
-	if occupiedRobots == robots.max {
-		robotAvailableSwt.Set(false)
-	}
-
-}
-
-func (robots *Robots) Release() {
-	occupiedRobots--
-	itemsProcessed++
-	robotAvailableSwt.Set(true)
+type Maintainers struct {
+	max int
 }
 
 func (item *Item) Run() {
@@ -149,6 +138,21 @@ func (maintainers *Maintainers) Catch(item *Item) {
 func (maintainers *Maintainers) Release() {
 	busyMaintainers--
 	maintainerAvailableSwt.Set(true)
+}
+
+func (qs *QualityAssurance) Catch(item *Item){
+	qsAvailableSwt.Wait(true)
+	machinesToRepairQueue.GetHead().(*Item).id == item.id{
+		break
+	} else {
+		godes.Yield()
+	}
+}
+
+func (qs *QualityAssurance) Release(item *Item){
+    busyOperators--
+	qsAvailableSwt.Set(true)
+	
 }
 
 func main() {
