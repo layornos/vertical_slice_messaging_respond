@@ -9,17 +9,24 @@ import (
 
 //Input Parameters
 const (
-	MAX_ROBOTS         = 3
-	MAX_OPERATORS      = 1
-	MAX_MAINTAINERS    = 1
-	ARRIVAL_INTERVAL   = .1
-	PROCESS_TIME       = 20
-	PROCESS_TIME_SIGMA = 1.0
-	CHECK_TIME         = 100
-	CHECK_TIME_SIGMA   = 10.0
-	REPAIR_TIME        = 300
-	REPAIR_TIME_SIGMA  = 30.0
-	SHUTDOWN_TIME      = 8 * 60.
+	MAX_ROBOTS      = 3
+	MAX_OPERATORS   = 1
+	MAX_MAINTAINERS = 1
+	MAX_QS          = 1
+
+	// How long to wait for the n * 100th item
+	ARRIVAL_INTERVAL = 20.0
+
+	// Time Operator needs to go to the item checkup
+	TRANSPORT_TIME       = 10
+	TRANSPORT_TIME_SIGMA = .1
+
+	MTTF_ROBOT        = 3000.0
+	CHECK_TIME        = 100
+	CHECK_TIME_SIGMA  = 1
+	REPAIR_TIME       = 300
+	REPAIR_TIME_SIGMA = 3.0
+	SHUTDOWN_TIME     = 8 * 60.
 )
 
 /*
@@ -33,8 +40,9 @@ var checkingQueue = godes.NewFIFOQueue("Checking Queue")
 var machinesToRepairQueue = godes.NewFIFOQueue("Machine Repair Queue")
 
 var arrivalOfItems = godes.NewExpDistr(true)
+var transportItemToCheck = godes.NewNormalDistr(true)
 var checkOfItem = godes.NewNormalDistr(true)
-var repairOfRobot = godes.NewUniformDistr(true)
+var repairOfRobot = godes.NewExpDistr(true)
 var repairTimeOfOneRobot = godes.NewNormalDistr(true)
 
 var robotAvailableSwt = godes.NewBooleanControl()
@@ -42,7 +50,7 @@ var operatorAvailableSwt = godes.NewBooleanControl()
 var maintainerAvailableSwt = godes.NewBooleanControl()
 var qsAvailableSwt = godes.NewBooleanControl()
 
-var occupiedRobots = 0
+var robotsAvailable = 0
 var busyOperators = 0
 var busyMaintainers = 0
 var busyQS = 0
@@ -78,25 +86,42 @@ type Maintainers struct {
 	max int
 }
 
-func (item *Item) Run() {
-	robots.Catch(item)
-	itemArrivalQueue.Get()
-	godes.Advance(processOfItem.Get(PROCESS_TIME, PROCESS_TIME_SIGMA))
-	robots.Release()
-	if (itemCount%100) == 0 && itemCount > 0 {
-		fmt.Printf("Checking %dth item.\n", itemCount)
-		operators.Catch(item)
-		checkingQueue.Get()
-		godes.Advance(checkOfItem.Get(CHECK_TIME, CHECK_TIME_SIGMA))
-		if faultyItemsQueue.Len() > 0 {
-			fmt.Printf("Repairing Robot!\n")
-			maintainers.Catch(item)
-			faultyItemsQueue.Get()
-			godes.Advance(repairTimeOfOneRobot.Get(REPAIR_TIME, REPAIR_TIME_SIGMA))
-			maintainers.Release()
+func (robot *Robots) Run() {
+	for {
+		robotAvailableSwt.Wait(true)
+		robotsAvailable--
+		if robotsAvailable == 0 {
+			robotAvailableSwt.Set(false)
 		}
-		operators.Release()
+		maintainerAvailableSwt.Wait(true)
+		busyMaintainers++
+		if busyMaintainers == maintainers.max {
+			maintainerAvailableSwt.Set(false)
+		}
+		for {
+			if machinesToRepairQueue.GetHead().(*Robots).id == robot.id {
+				break
+			} else {
+				godes.Yield()
+			}
+		}
+		machinesToRepairQueue.Get()
+		godes.Advance(repairTimeOfOneRobot.Get(REPAIR_TIME, REPAIR_TIME_SIGMA))
+		robotAvailableSwt.Set(true)
+		maintainerAvailableSwt.Set(true)
 	}
+}
+
+func (item *Item) Run() {
+	operators.Catch(item)
+	itemArrivalQueue.Get()
+	godes.Advance(transportItemToCheck.Get(TRANSPORT_TIME, TRANSPORT_TIME_SIGMA))
+	operators.Release(item)
+
+	qs.Catch(item)
+	checkingQueue.Get()
+	godes.Advance(checkOfItem.Get(CHECK_TIME, CHECK_TIME_SIGMA))
+	qs.Release(item)
 }
 
 func (operators *Operators) Catch(item *Item) {
@@ -114,22 +139,23 @@ func (operators *Operators) Catch(item *Item) {
 	}
 }
 
-func (operators *Operators) Release() {
+func (operators *Operators) Release(item *Item) {
 	busyOperators--
+	checkingQueue.Place(item)
 	operatorAvailableSwt.Set(true)
 }
 
-func (maintainers *Maintainers) Catch(item *Item) {
+func (maintainers *Maintainers) Catch(robot *Robots) {
 	for {
 		maintainerAvailableSwt.Wait(true)
-		if faultyItemsQueue.GetHead().(*Item).id == item.id {
+		if checkingQueue.GetHead().(*Robots).id == robot.id {
 			break
 		} else {
 			godes.Yield()
 		}
 	}
 	busyMaintainers++
-	occupiedRobots++
+
 	if busyMaintainers == maintainers.max {
 		maintainerAvailableSwt.Set(false)
 	}
@@ -140,52 +166,48 @@ func (maintainers *Maintainers) Release() {
 	maintainerAvailableSwt.Set(true)
 }
 
-func (qs *QualityAssurance) Catch(item *Item){
-	qsAvailableSwt.Wait(true)
-	machinesToRepairQueue.GetHead().(*Item).id == item.id{
-		break
-	} else {
-		godes.Yield()
+func (qs *QualityAssurance) Catch(item *Item) {
+	for {
+		qsAvailableSwt.Wait(true)
+		if machinesToRepairQueue.GetHead().(*Item).id == item.id {
+			break
+		} else {
+			godes.Yield()
+		}
+	}
+	busyQS++
+	if busyQS == qs.max {
+		qsAvailableSwt.Set(false)
 	}
 }
 
-func (qs *QualityAssurance) Release(item *Item){
-    busyOperators--
+func (qs *QualityAssurance) Release(item *Item) {
+	busyOperators--
 	qsAvailableSwt.Set(true)
-	
 }
 
 func main() {
 	itemArrivalQueue.Clear()
 	checkingQueue.Clear()
-	robots = &Robots{MAX_ROBOTS}
+	machinesToRepairQueue.Clear()
+
 	operators = &Operators{MAX_OPERATORS}
 	maintainers = &Maintainers{MAX_MAINTAINERS}
+	qs = &QualityAssurance{MAX_QS}
 
-	robotAvailableSwt.Set(true)
 	operatorAvailableSwt.Set(true)
 	maintainerAvailableSwt.Set(true)
+	robotAvailableSwt.Set(true)
 
 	godes.Run()
-	for {
-		item := &Item{&godes.Runner{}, strconv.Itoa(itemCount)}
-		if (itemCount%100) == 0 && itemCount > 0 {
-			checkingQueue.Place(item)
-			checkedItems++
-			if repairOfRobot.Get(0, 1) > .99 {
-				faultyItemsQueue.Place(item)
-				repairedRobots++
-			}
-		}
-		itemArrivalQueue.Place(item)
-		godes.AddRunner(item)
-		godes.Advance(arrivalOfItems.Get(1. / ARRIVAL_INTERVAL))
-		if godes.GetSystemTime() > SHUTDOWN_TIME {
-			break
-		}
-		//fmt.Println(itemArrivalQueue.Len())
-		itemCount++
+
+	for i := 0; i < MAX_ROBOTS; i++ {
+		robot := &Robots{&godes.Runner{}, strconv.Itoa(i)}
+		machinesToRepairQueue.Place(robot)
+		godes.AddRunner(robot)
+		godes.Advance(repairOfRobot.Get(1. / MTTF_ROBOT))
 	}
+
 	godes.WaitUntilDone()
 	fmt.Printf("Number of processed items: %d\n", itemsProcessed)
 	fmt.Printf("Number of checked items: %d\n", checkedItems)
