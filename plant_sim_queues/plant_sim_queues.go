@@ -87,6 +87,7 @@ type Maintainers struct {
 }
 
 func (robot *Robots) Run() {
+	godes.Advance(repairOfRobot.Get(1. / MTTF_ROBOT))
 	for {
 		robotAvailableSwt.Wait(true)
 		robotsAvailable--
@@ -203,11 +204,20 @@ func main() {
 
 	for i := 0; i < MAX_ROBOTS; i++ {
 		robot := &Robots{&godes.Runner{}, strconv.Itoa(i)}
-		machinesToRepairQueue.Place(robot)
 		godes.AddRunner(robot)
-		godes.Advance(repairOfRobot.Get(1. / MTTF_ROBOT))
 	}
-
+	/*
+		for {
+				item := &Item{&godes.Runner{}, strconv.Itoa(itemCount)}
+				itemArrivalQueue.Place(item)
+				godes.AddRunner(item)
+				godes.Advance(arrivalOfItems.Get(1. / ARRIVAL_INTERVAL))
+				if godes.GetSystemTime() > SHUTDOWN_TIME {
+					break
+				}
+				itemCount++
+			}
+	*/
 	godes.WaitUntilDone()
 	fmt.Printf("Number of processed items: %d\n", itemsProcessed)
 	fmt.Printf("Number of checked items: %d\n", checkedItems)
