@@ -11,18 +11,19 @@ import (
 )
 
 // A Sensor is a Dummy Datastructure for Sensor Information on a Plant
-type Sensor struct {
-	Plant       string
-	SensorName  string
-	SensorID    string
-	Temperature int
-	Time        int64
+type Module struct {
+	ModuleID   int
+	StationID  int
+	Main_ID    string
+	Error_Code int
+	Result     int
+	Time       int64
 }
 
-func publishSensor(client MQTT.Client, topic string, sensorID string) {
+func publishModule(client MQTT.Client, topic string, mainID string) {
 	for true {
 		fmt.Println("---- doing publish ----")
-		sensorData := Sensor{"Plant One", "Temperature", sensorID, rand.Intn(100-30) + 30, time.Now().UnixNano()}
+		sensorData := Module{1, rand.Intn(7), mainID, 0, 1, time.Now().UnixNano()}
 		payload, err := json.Marshal(sensorData)
 		if err == nil {
 			fmt.Println(string(payload))
@@ -36,8 +37,8 @@ func publishSensor(client MQTT.Client, topic string, sensorID string) {
 func main() {
 	brokerFlag := flag.String("broker", "localhost", "URL to the desired broker")
 	flag.Parse()
-	topicSensorA := "sitec/plant_one/sensors/a"
-	topicSensorB := "sitec/plant_one/sensors/b"
+	topic := "sitec/plant_one/sensors/a"
+	//	topicSensorB := "sitec/plant_one/sensors/b"
 	broker := "tcp://" + *brokerFlag + ":1883"
 	id := "plant_one"
 
@@ -49,10 +50,15 @@ func main() {
 	if token := client.Connect(); token.Wait() && token.Error() != nil {
 		panic(token.Error())
 	}
-	fmt.Println("Plant One Publisher Started")
-	go publishSensor(client, topicSensorA, "A")
-	publishSensor(client, topicSensorB, "B")
+	fmt.Println("Module 1 Publisher Started")
+	go publishModule(client, topic, "A")
+	go publishModule(client, topic, "B")
+	go publishModule(client, topic, "C")
+	go publishModule(client, topic, "D")
+	go publishModule(client, topic, "E")
+	go publishModule(client, topic, "F")
+	publishModule(client, topic, "G")
 	client.Disconnect(250)
-	fmt.Println("Plant One Publisher Disconnected")
+	fmt.Println("Module 1 Publisher Disconnected")
 
 }
