@@ -1,42 +1,33 @@
-// Create a client instance
-// client = new Paho.MQTT.Client("localhost", 9001, "webpage");
-// client = new Paho.MQTT.Client("i43vm03.ira.uka.de", 9001, "webpage");
-client = new Paho.MQTT.Client("localhost", 9001, "webpage");
+const plants = {
+    "plant_one": "status_one",
+    "plant_two": "status_two",
+    "plant_example": "status_example"
+};
 
-// set callback handlers
-client.onConnectionLost = onConnectionLost;
-client.onMessageArrived = onMessageArrived;
+websocket = new WebSocket("ws://localhost:8081/ws");
 
-// connect the client
-client.connect({onSuccess:onConnect});
+websocket.onopen = function (event) {
+    for (const key in plants) {
+        this.send(key)
+    }
+};
 
+websocket.onmessage = function (event) {
+    console.log("onMessageArrived:" + event.data);
 
-// called when the client connects
-function onConnect() {
-  // Once a connection has been made, make a subscription and send a message.
-  console.log("onConnect");
-  client.subscribe("sitec/+/error");
-  //client.subscribe("sitec/plant_two/error");
-}
+    let info = event.data.split("/");
+    let plant = info[0];
+    let status = info[1] === "true";
 
-// called when the client loses its connection
-function onConnectionLost(responseObject) {
-  if (responseObject.errorCode !== 0) {
-    console.log("onConnectionLost:"+responseObject.errorMessage);
-  }
-}
-
-// called when a message arrives
-function onMessageArrived(message) {
-  console.log("onMessageArrived:"+message.payloadString);
-  payload = JSON.parse(message.payloadString)
-  if(payload.Plant == "plant_one"){
-    document.getElementById("status_one").innerHTML = "ERROR"
-    document.getElementById("status_one").style.color = "red";
-  }
-  if(payload.Plant == "plant_two"){
-    document.getElementById("status_two").innerHTML = "ERROR"
-    document.getElementById("status_two").style.color = "red";
-  }
-
-}
+    if (plant in plants) {
+        const plant_id = plants[plant];
+        if (status) {
+            document.getElementById(plant_id).innerHTML = "ERROR";
+            document.getElementById(plant_id).style.color = "red";
+        }
+        else {
+            document.getElementById(plant_id).innerHTML = "OK";
+            document.getElementById(plant_id).style.color = "#00b400";
+        }
+    }
+};

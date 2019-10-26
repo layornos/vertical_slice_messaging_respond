@@ -84,10 +84,6 @@ article {
   height: auto;
 }
 
-#status_one{
-  color: #00b400
-}
-
-#status_two{
+#status_one, #status_two, #status_example{
   color: #00b400
 }
