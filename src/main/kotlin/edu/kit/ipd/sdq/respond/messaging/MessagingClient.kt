@@ -1,7 +1,6 @@
 package edu.kit.ipd.sdq.respond.messaging
 
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.eclipse.paho.client.mqttv3.MqttAsyncClient
@@ -16,6 +15,7 @@ abstract class MessagingClient {
 }
 
 class MqttMessagingClient(private val client: MqttClient) : MessagingClient() {
+    private val scope = CoroutineScope(Dispatchers.IO)
     private val mutex = Mutex()
 
     init {
@@ -24,12 +24,13 @@ class MqttMessagingClient(private val client: MqttClient) : MessagingClient() {
 
     @ExperimentalStdlibApi
     override fun publish(topic: String, message: ByteArray) {
-       GlobalScope.launch {
-           println("entered scope for ${message.decodeToString()}")
+       scope.launch {
            mutex.withLock {
+               while (!client.isConnected) {
+                  delay(100)
+               }
                client.publish(topic, MqttMessage(message))
            }
-           println("left scope for ${message.decodeToString()}")
        }
     }
 

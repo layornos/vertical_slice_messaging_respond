@@ -21,16 +21,16 @@ val mqttKodein = Kodein.Module("MQTT client", false) {
     }
 }
 
+var numPumps = 0
 val normalScenario = Kodein {
     import(mqttKodein)
     bind<Slider>() with provider {
-        SimulatedSlider(instance())
+        SimulatedSlider(instance(), "position")
     }
     bind<Scale>() with provider {
-        SimulatedScale(instance())
+        SimulatedScale(instance(), "weight")
     }
-
     bind<Pump>() with provider {
-        SimulatedPump(instance())
+        SimulatedPump(instance(), "filling${numPumps++}")
     }
 }
