@@ -45,7 +45,7 @@ class SimulatedPump(client: MessagingClient, private val name: String) : Pump(cl
     override fun pump(amount: Gram, callback: (Gram) -> Unit) {
         var amountLeft = amount
         while (amountLeft > 0 && content > 0) {
-            val toPump = min(content, 100)
+            val toPump = min(content, min(amountLeft, 100))
             amountLeft -= toPump
             content -= toPump
             client.publish(name, "$content".toByteArray())

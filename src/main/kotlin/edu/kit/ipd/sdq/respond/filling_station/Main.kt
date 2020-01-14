@@ -17,7 +17,7 @@ fun main() {
     }
     station.moveTo(5)
     station.activatePump(1, 400)
-    station.activatePump(5, 500)
+    station.activatePump(5, 530)
 
     val client by normalScenario.instance<MessagingClient>()
     client.disconnect()
