@@ -20,7 +20,6 @@ fun main() {
     station.activatePump(1, 400)
     station.activatePump(5, 500)
 
-    val a by normalScenario.instance<MessagingClient>()
-    a.disconnect()
-    print("reached end of main")
+    val client by normalScenario.instance<MessagingClient>()
+    client.disconnect()
 }
