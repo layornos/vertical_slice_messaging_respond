@@ -1,10 +1,11 @@
 package edu.kit.ipd.sdq.respond.messaging
 
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import org.eclipse.paho.client.mqttv3.MqttAsyncClient
-import org.eclipse.paho.client.mqttv3.MqttCallback
 import org.eclipse.paho.client.mqttv3.MqttClient
 import org.eclipse.paho.client.mqttv3.MqttMessage
 
@@ -22,7 +23,6 @@ class MqttMessagingClient(private val client: MqttClient) : MessagingClient() {
         client.connect()
     }
 
-    @ExperimentalStdlibApi
     override fun publish(topic: String, message: ByteArray) {
        scope.launch {
            mutex.withLock {

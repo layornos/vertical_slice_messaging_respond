@@ -6,5 +6,5 @@ fun <T> listOfLambda(count: Int, lambda: () -> T): List<T> {
         list.add(lambda())
     }
 
-    return list
+    return list.toList()
 }
