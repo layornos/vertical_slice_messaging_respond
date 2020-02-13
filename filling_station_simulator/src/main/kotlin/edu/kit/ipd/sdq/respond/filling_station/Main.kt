@@ -15,9 +15,10 @@ fun main() {
             }
         )
     }
-    station.moveTo(5)
+
+    station.moveSliderTo(5)
     station.activatePump(1, 400)
-    station.activatePump(5, 530)
+    station.activatePump(5, 1500)
 
     val client by normalScenario.instance<MessagingClient>()
     client.disconnect()

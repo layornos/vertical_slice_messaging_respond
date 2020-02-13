@@ -18,7 +18,7 @@ class SimulatedSlider(client: MessagingClient, private val name: String) : Slide
         while (abs(targetPosition - position) > 10) {
             position += 100 * if (targetPosition < position) -1 else 1
             client.publish(name, "$position".toByteArray())
-            Thread.sleep(100)
+            Thread.sleep(500)
         }
     }
 }
@@ -50,7 +50,7 @@ class SimulatedPump(client: MessagingClient, private val name: String) : Pump(cl
             content -= toPump
             client.publish(name, "$content".toByteArray())
             callback(toPump)
-            Thread.sleep(100)
+            Thread.sleep(500)
         }
     }
 }

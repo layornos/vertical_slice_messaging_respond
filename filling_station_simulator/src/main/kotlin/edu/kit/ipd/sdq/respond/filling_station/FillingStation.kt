@@ -5,7 +5,7 @@ import kotlin.math.abs
 class FillingStation(private val slider: Slider, private val scale: Scale, private val pumps: List<Pump>) {
     val numStations = pumps.size
 
-    fun moveTo(index: Int) {
+    fun moveSliderTo(index: Int) {
         assert(index >= 0)
         assert(index < numStations)
         slider.moveToPosition(slider.movingRange * index / numStations)
