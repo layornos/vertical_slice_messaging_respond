@@ -1,3 +1,3 @@
 rootProject.name = 'filling_station'
 
-include ':filling_station_simulator', ':bpnm2_demo'
+include ':filling_station_simulator', ':bpmn2_demo'

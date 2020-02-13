@@ -1,5 +1,6 @@
 # development env
 build/
+workspace/
 .gradle
 .idea
 
