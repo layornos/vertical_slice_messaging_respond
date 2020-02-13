@@ -1,3 +1,5 @@
+package edu.kit.ipd.sdq.respond.bpmn2
+
 import org.eclipse.bpmn2.*
 
 fun DocumentRoot.findStartEvents() : List<StartEvent> {

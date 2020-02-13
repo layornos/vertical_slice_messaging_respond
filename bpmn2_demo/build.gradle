@@ -29,7 +29,7 @@ dependencies {
 }
 
 application {
-    mainClassName = 'MainKt'
+    mainClassName = 'edu.kit.ipd.sdq.respond.bpmn2.MainKt'
 }
 
 compileKotlin {

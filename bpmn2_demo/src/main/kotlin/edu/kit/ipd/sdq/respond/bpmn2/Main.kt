@@ -1,3 +1,5 @@
+package edu.kit.ipd.sdq.respond.bpmn2
+
 import org.eclipse.bpmn2.DocumentRoot
 import org.eclipse.bpmn2.util.Bpmn2ResourceFactoryImpl
 import org.eclipse.emf.common.util.URI
@@ -13,5 +15,5 @@ fun main() {
     val documentRoot = bpmnResource.contents[0] as DocumentRoot
 
     val startEvents = documentRoot.findStartEvents()
-    startEvents[0].traverse { println(it) }
+    startEvents[0].traverse { println(it.name) }
 }
