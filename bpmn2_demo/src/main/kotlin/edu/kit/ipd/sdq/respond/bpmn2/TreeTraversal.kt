@@ -9,15 +9,15 @@ fun DocumentRoot.findStartEvents() : List<StartEvent> {
 }
 
 fun RootElement.findStartEvents(list: MutableList<StartEvent>) : List<StartEvent> {
-    when (this) {
-        is Process -> this.flowElements.forEach { it.findStartEvents(list) }
+    if (this is Process) {
+        this.flowElements.forEach { it.findStartEvents(list) }
     }
     return list
 }
 
 fun FlowElement.findStartEvents(list: MutableList<StartEvent>) : List<StartEvent> {
-    when (this) {
-        is StartEvent -> list.add(this)
+    if (this is StartEvent) {
+        list.add(this)
     }
     return list
 }
