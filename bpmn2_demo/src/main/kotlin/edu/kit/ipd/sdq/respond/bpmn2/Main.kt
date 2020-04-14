@@ -22,5 +22,5 @@ fun main() {
 
     //Make changes to the graph and save it
     startEvents[0].name = "Changed"
-    bpmnResource.save(FileOutputStream("output.bpmn"), null)
+    bpmnResource.save(FileOutputStream("output.bpmn"))
 }
