@@ -1,4 +1,4 @@
-package edu.kit.ipd.sdq.respond.bpmn2
+package edu.kit.ipd.sdq.respond.bpmn2.extensions
 
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.emf.ecore.xmi.XMLResource

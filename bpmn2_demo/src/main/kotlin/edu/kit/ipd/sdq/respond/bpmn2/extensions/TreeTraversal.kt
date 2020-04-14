@@ -1,4 +1,4 @@
-package edu.kit.ipd.sdq.respond.bpmn2
+package edu.kit.ipd.sdq.respond.bpmn2.extensions
 
 import org.eclipse.bpmn2.*
 

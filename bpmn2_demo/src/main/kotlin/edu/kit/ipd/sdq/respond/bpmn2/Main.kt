@@ -1,12 +1,14 @@
 package edu.kit.ipd.sdq.respond.bpmn2
 
+import edu.kit.ipd.sdq.respond.bpmn2.extensions.findStartEvents
+import edu.kit.ipd.sdq.respond.bpmn2.extensions.save
+import edu.kit.ipd.sdq.respond.bpmn2.extensions.traverse
 import org.eclipse.bpmn2.DocumentRoot
 import org.eclipse.bpmn2.util.Bpmn2ResourceFactoryImpl
 import org.eclipse.emf.common.util.URI
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl
 import java.io.File
 import java.io.FileOutputStream
-import java.io.OutputStream
 
 fun main() {
     val rs = ResourceSetImpl()
