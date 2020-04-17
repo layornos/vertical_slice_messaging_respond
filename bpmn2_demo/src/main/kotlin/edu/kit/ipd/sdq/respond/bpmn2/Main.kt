@@ -18,7 +18,6 @@ fun main() {
     val bpmnResource = rs.getResource(uri, true)
     val documentRoot = bpmnResource.contents[0] as DocumentRoot
 
-
     val startEvents = documentRoot.findStartEvents()
     // Traverse the bpmn graph
     startEvents[0].traverse { println(it.name) }

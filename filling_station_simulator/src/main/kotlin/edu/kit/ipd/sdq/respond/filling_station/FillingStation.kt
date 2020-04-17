@@ -7,7 +7,7 @@ import org.kodein.di.newInstance
 import kotlin.math.abs
 
 class FillingStation(private val slider: Slider, private val scale: Scale, private val pumps: List<Pump>) {
-    val numStations = pumps.size
+    private val numStations = pumps.size
 
     fun moveSliderTo(index: Int) {
         assert(index >= 0)

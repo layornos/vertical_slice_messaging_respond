@@ -21,8 +21,9 @@ class MqttMessagingClient(private val client: MqttClient, topicPrefix: String = 
     private val topicPrefix: String =
         if (topicPrefix == "" || topicPrefix.reversed()[0] != '/') {
             "$topicPrefix/"
+        } else {
+            topicPrefix
         }
-        else { topicPrefix }
 
     init {
         client.connect()
