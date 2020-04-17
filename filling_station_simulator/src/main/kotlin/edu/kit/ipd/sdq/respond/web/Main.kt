@@ -19,8 +19,9 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 class CommandController {
     @PostMapping("/start")
-    fun start(@RequestParam("target") target: String) {
-        val connection = MqttMessagingClient(MqttClient(target, "filling_station"))
+    fun start(@RequestParam("target") target: String?, @RequestParam("topic") topic: String) {
+        val target = target ?: "tcp://localhost" //Spring doesn't support kotlins default parameter values, so set it manually
+        val connection = MqttMessagingClient(MqttClient(target, "filling_station"), topic)
         val kodein = Kodein {
             extend(normalScenario)
             bind<MessagingClient>() with instance(connection)

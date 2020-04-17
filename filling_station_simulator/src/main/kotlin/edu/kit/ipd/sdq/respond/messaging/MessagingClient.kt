@@ -15,23 +15,28 @@ abstract class MessagingClient {
     abstract fun disconnect()
 }
 
-class MqttMessagingClient(private val client: MqttClient) : MessagingClient() {
+class MqttMessagingClient(private val client: MqttClient, topicPrefix: String = "/") : MessagingClient() {
     private val scope = CoroutineScope(Dispatchers.IO)
     private val mutex = Mutex()
+    private val topicPrefix: String =
+        if (topicPrefix.reversed()[0] != '/') {
+            "$topicPrefix/"
+        }
+        else { topicPrefix }
 
     init {
         client.connect()
     }
 
     override fun publish(topic: String, message: ByteArray) {
-       scope.launch {
-           mutex.withLock {
-               while (!client.isConnected) {
-                  delay(100)
-               }
-               client.publish(topic, MqttMessage(message))
-           }
-       }
+        scope.launch {
+            mutex.withLock {
+                while (!client.isConnected) {
+                    delay(100)
+                }
+                client.publish(topicPrefix + topic, MqttMessage(message))
+            }
+        }
     }
 
     override fun disconnect() {
