@@ -19,7 +19,7 @@ class MqttMessagingClient(private val client: MqttClient, topicPrefix: String = 
     private val scope = CoroutineScope(Dispatchers.IO)
     private val mutex = Mutex()
     private val topicPrefix: String =
-        if (topicPrefix.reversed()[0] != '/') {
+        if (topicPrefix == "" || topicPrefix.reversed()[0] != '/') {
             "$topicPrefix/"
         }
         else { topicPrefix }

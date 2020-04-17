@@ -12,15 +12,19 @@ import org.kodein.di.generic.bind
 import org.kodein.di.generic.instance
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.ui.Model
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
 class CommandController {
+
     @PostMapping("/start")
-    fun start(@RequestParam("target") target: String?, @RequestParam("topic") topic: String) {
-        val target = target ?: "tcp://localhost" //Spring doesn't support kotlins default parameter values, so set it manually
+    fun start(@RequestParam("target") target: String?, @RequestParam("topic") topic: String): String {
+        val target =
+            target ?: "tcp://localhost" //Spring doesn't support kotlins default parameter values, so set it manually
         val connection = MqttMessagingClient(MqttClient(target, "filling_station"), topic)
         val kodein = Kodein {
             extend(normalScenario)
@@ -35,6 +39,8 @@ class CommandController {
 
             connection.disconnect()
         }
+
+        return "Success"
     }
 }
 
