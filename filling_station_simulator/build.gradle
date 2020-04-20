@@ -29,3 +29,7 @@ compileKotlin {
 compileTestKotlin {
     kotlinOptions.jvmTarget = "1.8"
 }
+
+springBoot {
+    mainClassName = "edu.kit.ipd.sdq.respond.web.MainKt"
+}
