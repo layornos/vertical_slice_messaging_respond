@@ -21,7 +21,7 @@ class CommandController {
     @PostMapping("/start")
     fun start(@RequestParam("broker") broker: String?, @RequestParam("topic") topic: String): String {
         //Spring doesn't support kotlins default parameter values, so set it manually
-        val target = broker ?: "tcp://localhost"
+        val target = broker ?: "tcp://82.165.18.31:1883"
         val connection = MqttMessagingClient(MqttClient(target, "filling_station"), topic)
         val kodein = Kodein {
             extend(normalScenario)
