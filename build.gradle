@@ -6,6 +6,8 @@ plugins {
 
 p2AsMaven {
     group 'eclipse', {
+        // emf can also be gotten from maven central, but bpmn can't, so we might as well take everything from here to
+        // prevent incompatible versions.
         repo 'https://download.eclipse.org/releases/2020-03/'
         iu 'org.eclipse.emf.common'
         iu 'org.eclipse.emf.ecore'
