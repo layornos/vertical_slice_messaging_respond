@@ -1,18 +1,29 @@
 package edu.kit.ipd.sdq.respond.filling_station
 
+import edu.kit.ipd.sdq.respond.messaging.*
 import edu.kit.ipd.sdq.respond.utils.listOfLambda
 import org.kodein.di.Kodein
 import org.kodein.di.generic.instance
 import org.kodein.di.newInstance
+import java.util.UUID
 import kotlin.math.abs
 
-class FillingStation(private val slider: Slider, private val scale: Scale, private val pumps: List<Pump>) {
+class FillingStation(val client: MessagingClient, private val slider: Slider, private val scale: Scale, private val pumps: List<Pump>, val uuid: UUID = UUID.randomUUID()) {
+    init {
+        slider.parent = this
+        scale.parent = this
+        pumps.forEach {
+            it.parent = this
+        }
+    }
     private val numStations = pumps.size
 
     fun moveSliderTo(index: Int) {
         assert(index >= 0)
         assert(index < numStations)
+        client.publish(TaskStartEvent(0, 0, DriveToStationTask(index)).toMessage())
         slider.moveToPosition(slider.movingRange * index / numStations)
+        client.publish(TaskCompleteEvent(0, 0).toMessage())
     }
 
     fun activatePump(index: Int, amount: Gram) {
@@ -31,6 +42,7 @@ class FillingStation(private val slider: Slider, private val scale: Scale, priva
 fun constructFillingStation(kodein: Kodein): FillingStation {
     val station by kodein.newInstance {
         FillingStation(
+            instance(),
             instance(),
             instance(),
             listOfLambda(10) {

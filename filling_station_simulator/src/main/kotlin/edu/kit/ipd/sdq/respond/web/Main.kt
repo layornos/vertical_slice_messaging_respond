@@ -2,6 +2,8 @@ package edu.kit.ipd.sdq.respond.web
 
 import edu.kit.ipd.sdq.respond.filling_station.constructFillingStation
 import edu.kit.ipd.sdq.respond.filling_station.normalScenario
+import edu.kit.ipd.sdq.respond.messaging.JsonCoding
+import edu.kit.ipd.sdq.respond.messaging.MessageCoding
 import edu.kit.ipd.sdq.respond.messaging.MessagingClient
 import edu.kit.ipd.sdq.respond.messaging.MqttMessagingClient
 import kotlinx.coroutines.GlobalScope
@@ -22,10 +24,11 @@ class CommandController {
     fun start(@RequestParam("broker") broker: String?, @RequestParam("topic") topic: String): String {
         //Spring doesn't support kotlins default parameter values, so set it manually
         val target = broker ?: "tcp://82.165.18.31:1883"
-        val connection = MqttMessagingClient(MqttClient(target, "filling_station"), topic)
+        val connection = MqttMessagingClient(MqttClient(target, "filling_station"), JsonCoding, topic)
         val kodein = Kodein {
             extend(normalScenario)
             bind<MessagingClient>() with instance(connection)
+            bind<MessageCoding>() with instance(JsonCoding)
         }
         val station = constructFillingStation(kodein)
 

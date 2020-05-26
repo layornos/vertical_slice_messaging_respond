@@ -11,11 +11,11 @@ import org.eclipse.paho.client.mqttv3.MqttMessage
 
 abstract class MessagingClient {
     //TODO: Find a technology independent way to handle topics
-    abstract fun publish(topic: String, message: ByteArray)
+    abstract fun publish(message: Message)
     abstract fun disconnect()
 }
 
-class MqttMessagingClient(private val client: MqttClient, topicPrefix: String = "/") : MessagingClient() {
+class MqttMessagingClient(private val client: MqttClient, val coding: MessageCoding, topicPrefix: String = "/") : MessagingClient() {
     private val scope = CoroutineScope(Dispatchers.IO)
     private val mutex = Mutex()
     private val topicPrefix: String =
@@ -29,13 +29,13 @@ class MqttMessagingClient(private val client: MqttClient, topicPrefix: String = 
         client.connect()
     }
 
-    override fun publish(topic: String, message: ByteArray) {
+    override fun publish(message: Message) {
         scope.launch {
             mutex.withLock {
                 while (!client.isConnected) {
                     delay(100)
                 }
-                client.publish(topicPrefix + topic, MqttMessage(message))
+                client.publish(topicPrefix, MqttMessage(coding.encode(message)))
             }
         }
     }
