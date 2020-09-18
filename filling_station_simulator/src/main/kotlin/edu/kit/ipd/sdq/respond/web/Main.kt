@@ -9,11 +9,14 @@ import edu.kit.ipd.sdq.respond.messaging.MqttMessagingClient
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.eclipse.paho.client.mqttv3.MqttClient
+import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence
 import org.kodein.di.Kodein
 import org.kodein.di.generic.bind
 import org.kodein.di.generic.instance
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.boot.builder.SpringApplicationBuilder
+import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
@@ -24,7 +27,7 @@ class CommandController {
     fun start(@RequestParam("broker") broker: String?, @RequestParam("topic") topic: String): String {
         //Spring doesn't support kotlins default parameter values, so set it manually
         val target = broker ?: "tcp://82.165.18.31:1883"
-        val connection = MqttMessagingClient(MqttClient(target, "filling_station"), JsonCoding, topic)
+        val connection = MqttMessagingClient(MqttClient(target, "filling_station", MemoryPersistence()), JsonCoding, topic)
         val kodein = Kodein {
             extend(normalScenario)
             bind<MessagingClient>() with instance(connection)
@@ -46,6 +49,15 @@ class CommandController {
 
 @SpringBootApplication
 class Application
+
+class ServletInitializer : SpringBootServletInitializer() {
+    override fun configure(application: SpringApplicationBuilder): SpringApplicationBuilder {
+        System.setProperty("server.error.include-stacktrace", "always")
+        System.setProperty("server.error.include-exception", "true")
+        return application.sources(Application::class.java)
+    }
+}
+
 
 fun main(args: Array<String>) {
     SpringApplication.run(Application::class.java, *args)
