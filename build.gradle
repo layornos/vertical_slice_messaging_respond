@@ -1,5 +1,5 @@
 plugins {
-    id 'org.jetbrains.kotlin.jvm' version '1.3.72' apply false // Set version here, then apply in subprojects without setting version
+    id 'org.jetbrains.kotlin.jvm' version '1.4.0' apply false // Set version here, then apply in subprojects without setting version
     id 'com.diffplug.p2.asmaven' version '3.22.0'
 }
 
@@ -14,5 +14,12 @@ p2AsMaven {
         iu 'org.eclipse.emf.ecore.xmi'
         iu 'org.eclipse.bpmn2'
         slicingOption 'followStrict', 'true' // Prevent unneeded libraries from being downloaded
+    }
+
+    group 'kamp', {
+        repo 'https://kamp-research.github.io/KAMP/'
+        iu 'edu.kit.ipd.sdq.kamp'
+        iu 'edu.kit.ipd.sdq.kamp4iec'
+        iu 'edu.kit.ipd.sdq.kamp4aps'
     }
 }
