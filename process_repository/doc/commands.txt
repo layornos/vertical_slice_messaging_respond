@@ -1,0 +1,31 @@
+topic: /Location/respond/repository/new_process
+User publishes:
+{"process":"<xml representation of bpmn process>","processName":"<name>"}
+Repository stores the process, generates an id for it and publishes the new list of processes to
+/Location/respond/repository/processes and the new process to /Location/respond/repository/process/<id>
+
+topic: /Location/respond/repository/processes
+Repository publishes retained message:
+[{"name":"<name>","id":<id>}]
+Published whenever a process is added or removed
+
+topic: /Location/respond/repository/process/<id>
+Repository publishes retained message:
+{"id":<id>,"name":"<name>","source":"<xml representation of bpmn process>"}
+Published when the process is added or updated. Empty message published when the process is deleted
+
+topic: /Location/respond/repository/delete_process
+User publishes:
+<processId>
+Repository deleted the process and publishes the new list of processes to /Location/respond/repository/processes and an
+empty message to /Location/respond/repository/process/<id>
+
+topic: /Location/respond/repository/delete_all_processes
+User publishes:
+"YES"
+Repository removes all processes of the plant. Any other message is ignored for safety reasons
+
+topic: /Location/respond/repository/update/<id>
+User publishes:
+"<xml representation of bpmn process>"
+Repository updates the process and publishes it on /Location/respond/repository/process/<id>
