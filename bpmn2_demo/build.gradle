@@ -1,5 +1,4 @@
 plugins {
-    id 'java'
     id 'org.jetbrains.kotlin.jvm'
     id 'application'
 }
@@ -20,11 +19,14 @@ repositories {
 }
 
 dependencies {
+    implementation project(path: ':respond_messaging', configuration: 'default')
     implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
     implementation 'eclipse:org.eclipse.emf.common:+'
     implementation 'eclipse:org.eclipse.emf.ecore:+'
     implementation 'eclipse:org.eclipse.emf.ecore.xmi:+'
     implementation 'eclipse:org.eclipse.bpmn2:+'
+    implementation 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.0'
+    implementation 'com.google.code.gson:gson:2.8.6'
     testImplementation group: 'junit', name: 'junit', version: '4.12'
 }
 
