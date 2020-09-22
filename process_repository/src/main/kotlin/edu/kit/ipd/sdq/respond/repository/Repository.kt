@@ -1,6 +1,5 @@
 package edu.kit.ipd.sdq.respond.repository
 
-import org.hibernate.cfg.Configuration
 import javax.persistence.EntityManagerFactory
 
 typealias ProcessId = Int
@@ -8,13 +7,13 @@ typealias ProcessContent = String
 
 class Repository(private val sessionFactory: EntityManagerFactory) {
 
-    fun registerProcess(process: Process): ProcessId {
+    fun registerProcess(process: Process): Process {
         val entityManager = sessionFactory.createEntityManager()
         entityManager.transaction.begin()
         entityManager.persist(process)
         entityManager.transaction.commit()
         entityManager.close()
-        return process.id
+        return process
     }
 
     fun getProcess(processId: ProcessId, plant: Plant): Process {
@@ -53,13 +52,14 @@ class Repository(private val sessionFactory: EntityManagerFactory) {
         entityManager.close()
     }
 
-    fun updateProcess(processId: ProcessId, plant: Plant, process: ProcessContent) {
+    fun updateProcess(processId: ProcessId, plant: Plant, processContent: ProcessContent): Process {
         val entityManager = sessionFactory.createEntityManager()
         entityManager.transaction.begin()
-        val old_process = getProcess(processId, plant)
-        old_process.source = process
+        val process = getProcess(processId, plant)
+        process.source = processContent
         entityManager.transaction.commit()
         entityManager.close()
+        return process
     }
 
     fun getPlant(plantPath: String): Plant {

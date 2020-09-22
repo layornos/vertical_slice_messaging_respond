@@ -5,7 +5,7 @@ import javax.persistence.CascadeType.*
 
 @Entity
 @Table(name = "PROCESS")
-class Process(@Column(name = "name") var name: String, @Column(name = "source", columnDefinition = "text") var source: String, @ManyToOne(cascade = [MERGE]) var plant_id: Plant) {
+class Process(@Column(name = "name") var name: String, @Column(name = "source", columnDefinition = "text") var source: String, @ManyToOne(cascade = [MERGE]) var plant: Plant) {
     constructor() : this("", "", Plant())
 
     @Id
