@@ -97,5 +97,6 @@ class MqttRepositoryInterface(val client: MqttClient, val repository: Repository
 
 
 fun String.toMqttMessage(retained: Boolean = false) = MqttMessage(this.toByteArray()).also { it.isRetained = retained }
+fun Any.toMqttMessage(retained: Boolean = false) = this.toString().toMqttMessage(retained)
 fun MqttMessage?.toStringOrNull(): String? = this?.payload?.decodeToString()
 fun MqttMessage?.toIntOrNull(): Int? = this.toStringOrNull()?.toIntOrNull()

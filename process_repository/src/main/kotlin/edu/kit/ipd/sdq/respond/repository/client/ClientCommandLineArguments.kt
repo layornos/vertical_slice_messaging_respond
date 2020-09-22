@@ -18,11 +18,11 @@ class ClientCommandLineArguments(parser: ArgParser) {
 
 enum class Modes(val longFlag: String, val shortFlag: String) {
     SEND("--send", "-s"),
-    RECEIVE("--receive", "-r"),
+    //RECEIVE("--receive", "-r"),
     DELETE("--delete", "-d"),
     UPDATE("--update", "-u"),
-    DELETE_ALL("--deleteAll", "-a"),
-    LIST("--list", "-l");
+    DELETE_ALL("--deleteAll", "-a");
+    //LIST("--list", "-l");
 
     companion object {
         fun getArgMap(): Map<String, Modes> {
