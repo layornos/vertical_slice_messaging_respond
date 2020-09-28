@@ -18,6 +18,11 @@ dependencies {
     implementation 'org.hibernate:hibernate-gradle-plugin:5.4.19.Final'
     implementation 'mysql:mysql-connector-java:+'
     implementation 'com.xenomachina:kotlin-argparser:2.0.7'
+    testImplementation 'io.kotest:kotest-runner-junit5:4.2.5'
+    testImplementation 'io.kotest:kotest-assertions-core:4.2.5'
+    testImplementation 'io.kotest:kotest-property:4.2.5'
+    testImplementation "com.nhaarman.mockitokotlin2:mockito-kotlin:2.2.0"
+    testImplementation 'com.h2database:h2:1.4.200'
 }
 
 compileKotlin {

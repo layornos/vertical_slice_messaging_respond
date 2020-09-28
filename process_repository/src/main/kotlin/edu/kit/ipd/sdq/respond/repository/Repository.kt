@@ -1,13 +1,27 @@
 package edu.kit.ipd.sdq.respond.repository
 
+import edu.kit.ipd.sdq.respond.repository.tables.Plant
+import edu.kit.ipd.sdq.respond.repository.tables.Process
+import edu.kit.ipd.sdq.respond.repository.tables.ProcessDescriptor
+import edu.kit.ipd.sdq.respond.repository.tables.processDescriptor
 import javax.persistence.EntityManagerFactory
 
 typealias ProcessId = Int
 typealias ProcessContent = String
 
-class Repository(private val sessionFactory: EntityManagerFactory) {
+interface Repository {
+    fun registerProcess(process: Process): Process
+    fun getProcess(processId: ProcessId, plant: Plant): Process
+    fun removeProcess(processId: ProcessId, plant: Plant)
+    fun getProcesses(plant: Plant): List<ProcessDescriptor>
+    fun removeAllProcesses(plant: Plant)
+    fun updateProcess(processId: ProcessId, plant: Plant, processContent: ProcessContent): Process
+    fun getPlant(plantPath: String): Plant
+}
 
-    fun registerProcess(process: Process): Process {
+class HibernateRepository(private val sessionFactory: EntityManagerFactory) : Repository {
+
+    override fun registerProcess(process: Process): Process {
         val entityManager = sessionFactory.createEntityManager()
         entityManager.transaction.begin()
         entityManager.persist(process)
@@ -16,7 +30,7 @@ class Repository(private val sessionFactory: EntityManagerFactory) {
         return process
     }
 
-    fun getProcess(processId: ProcessId, plant: Plant): Process {
+    override fun getProcess(processId: ProcessId, plant: Plant): Process {
         val entityManager = sessionFactory.createEntityManager()
         val query = entityManager.createQuery("from Process  where plant_id = :plant and id = :id", Process::class.java)
         query.setParameter("plant", plant.id)
@@ -25,7 +39,7 @@ class Repository(private val sessionFactory: EntityManagerFactory) {
         return query.singleResult
     }
 
-    fun removeProcess(processId: ProcessId, plant: Plant) {
+    override fun removeProcess(processId: ProcessId, plant: Plant) {
         val entityManager = sessionFactory.createEntityManager()
         entityManager.transaction.begin()
         val query = entityManager.createQuery("delete from Process where plant_id = :plant and id = :id")
@@ -35,14 +49,14 @@ class Repository(private val sessionFactory: EntityManagerFactory) {
         entityManager.close()
     }
 
-    fun getProcesses(plant: Plant): List<ProcessDescriptor> {
+    override fun getProcesses(plant: Plant): List<ProcessDescriptor> {
         val entityManager = sessionFactory.createEntityManager()
         val query = entityManager.createQuery("from Process where plant_id = :plant", Process::class.java)
         query.setParameter("plant", plant.id)
         return query.resultList.map { it.processDescriptor }
     }
 
-    fun removeAllProcesses(plant: Plant) {
+    override fun removeAllProcesses(plant: Plant) {
         val entityManager = sessionFactory.createEntityManager()
         val criteriaBuilder = entityManager.criteriaBuilder
         entityManager.transaction.begin()
@@ -52,7 +66,7 @@ class Repository(private val sessionFactory: EntityManagerFactory) {
         entityManager.close()
     }
 
-    fun updateProcess(processId: ProcessId, plant: Plant, processContent: ProcessContent): Process {
+    override fun updateProcess(processId: ProcessId, plant: Plant, processContent: ProcessContent): Process {
         val entityManager = sessionFactory.createEntityManager()
         entityManager.transaction.begin()
         val process = getProcess(processId, plant)
@@ -62,7 +76,7 @@ class Repository(private val sessionFactory: EntityManagerFactory) {
         return process
     }
 
-    fun getPlant(plantPath: String): Plant {
+    override fun getPlant(plantPath: String): Plant {
         val entityManager = sessionFactory.createEntityManager()
         val query = entityManager.createQuery("select p from Plant p where path = :path", Plant::class.java)
         query.setParameter("path", plantPath)

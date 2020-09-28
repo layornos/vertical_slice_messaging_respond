@@ -2,15 +2,17 @@ package edu.kit.ipd.sdq.respond.repository.`interface`
 
 import com.google.gson.Gson
 import edu.kit.ipd.sdq.respond.repository.*
+import edu.kit.ipd.sdq.respond.repository.tables.Plant
+import edu.kit.ipd.sdq.respond.repository.tables.Process
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken
 import org.eclipse.paho.client.mqttv3.MqttCallback
 import org.eclipse.paho.client.mqttv3.MqttClient
 import org.eclipse.paho.client.mqttv3.MqttMessage
 import java.lang.Exception
 
-class MqttRepositoryInterface(val client: MqttClient, val repository: Repository) : MqttCallback {
-    val gson = Gson()
-    val prefixRegex = Regex("(.*)/repository/.*")
+class MqttRepositoryInterface(private val client: MqttClient, private val repository: Repository) : MqttCallback {
+    private val gson = Gson()
+    private val prefixRegex = Regex("(.*)/repository/.*")
 
     init {
         client.connect()
@@ -32,7 +34,43 @@ class MqttRepositoryInterface(val client: MqttClient, val repository: Repository
         client.publish("${plant.path}/repository/process/$processId", MqttMessage().also { it.isRetained = true })
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
+    private fun newProcess(mqttMessage: MqttMessage?, plant: Plant) {
+        val payload = gson.fromJson(mqttMessage.toStringOrNull(), NewProcessPayload::class.java)
+        val processContent = Process(payload.name, payload.process, plant)
+        val process = repository.registerProcess(processContent)
+        publishProcess(process, plant)
+        publishProcesses(plant)
+    }
+
+    private fun deleteProcess(mqttMessage: MqttMessage?, plant: Plant) {
+        val processId = mqttMessage.toIntOrNull()
+        if (processId != null) {
+            repository.removeProcess(processId, plant)
+            publishProcesses(plant)
+            publishRemovedProcess(processId, plant)
+        }
+    }
+
+    private fun deleteAllProcesses(mqttMessage: MqttMessage?, plant: Plant) {
+        val payload = mqttMessage.toStringOrNull()
+        if (payload == "YES") {
+            val processes = repository.getProcesses(plant)
+            repository.removeAllProcesses(plant)
+            publishProcesses(plant)
+            processes.forEach {
+                publishRemovedProcess(it.id, plant)
+            }
+        }
+    }
+
+    private fun updateProcess(id: Int?, mqttMessage: MqttMessage?, plant: Plant) {
+        val payload = mqttMessage.toStringOrNull()
+        if (id != null && payload != null) {
+            val process = repository.updateProcess(id, plant, payload)
+            publishProcess(process, plant)
+        }
+    }
+
     override fun messageArrived(topic: String?, mqttMessage: MqttMessage?) {
         try {
             if (topic == null) return
@@ -41,40 +79,10 @@ class MqttRepositoryInterface(val client: MqttClient, val repository: Repository
             val plant = repository.getPlant(prefixMatch.groupValues[1])
 
             val paths = PathMatcher(prefix = ".*/repository/") {
-                "new_process" {
-                    val payload = gson.fromJson(mqttMessage.toStringOrNull(), NewProcessPayload::class.java)
-                    val processContent = Process(payload.process, payload.name, plant)
-                    val process = repository.registerProcess(processContent)
-                    publishProcess(process, plant)
-                    publishProcesses(plant)
-                }
-                "delete_process" {
-                    val processId = mqttMessage.toIntOrNull()
-                    if (processId != null) {
-                        repository.removeProcess(processId, plant)
-                        publishProcesses(plant)
-                        publishRemovedProcess(processId, plant)
-                    }
-                }
-                "delete_all_processes" {
-                    val payload = mqttMessage.toStringOrNull()
-                    if (payload == "YES") {
-                        val processes = repository.getProcesses(plant)
-                        repository.removeAllProcesses(plant)
-                        publishProcesses(plant)
-                        processes.forEach {
-                            publishRemovedProcess(it.id, plant)
-                        }
-                    }
-                }
-                "update/(\\d+)" {
-                    val id = it.groupValues[1].toIntOrNull()
-                    val payload = mqttMessage.toStringOrNull()
-                    if (id != null && payload != null) {
-                        val process = repository.updateProcess(id, plant, payload)
-                        publishProcess(process, plant)
-                    }
-                }
+                "new_process" { newProcess(mqttMessage, plant) }
+                "delete_process" { deleteProcess(mqttMessage, plant) }
+                "delete_all_processes" { deleteAllProcesses(mqttMessage, plant) }
+                "update/(\\d+)" { updateProcess(it[0].toIntOrNull(), mqttMessage, plant) }
                 default {
                     print("Unknown endpoint: $topic")
                 }

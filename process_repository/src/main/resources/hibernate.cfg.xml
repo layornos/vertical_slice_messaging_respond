@@ -23,7 +23,7 @@
             my-secret-pw
         </property>
         <!-- List of XML mapping files -->
-        <mapping class="edu.kit.ipd.sdq.respond.repository.Process"/>
-        <mapping class="edu.kit.ipd.sdq.respond.repository.Plant"/>
+        <mapping class="edu.kit.ipd.sdq.respond.repository.tables.Process"/>
+        <mapping class="edu.kit.ipd.sdq.respond.repository.tables.Plant"/>
     </session-factory>
 </hibernate-configuration>

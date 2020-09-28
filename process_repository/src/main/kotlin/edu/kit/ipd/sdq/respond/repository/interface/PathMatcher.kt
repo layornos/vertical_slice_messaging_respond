@@ -2,7 +2,7 @@ package edu.kit.ipd.sdq.respond.repository.`interface`
 
 import kotlin.text.Regex
 
-typealias MatchCallback = (MatchResult) -> Unit
+typealias MatchCallback = (List<String>) -> Unit
 typealias DefaultCallback = () -> Unit
 
 class PathMatcher(prefix: String = "", initializer: PathMatcherBody.() -> Unit) {
@@ -16,12 +16,11 @@ class PathMatcher(prefix: String = "", initializer: PathMatcherBody.() -> Unit) 
         body.options.forEach {
             val matches = it.key.matchEntire(path)
             if (matches != null) {
-                it.value.invoke(matches)
+                it.value.invoke(matches.groupValues.drop(1))
                 return
             }
         }
         body.defaultCallback?.invoke()
-
     }
 
     class PathMatcherBody(private val prefix: String) {

@@ -1,7 +1,7 @@
 package edu.kit.ipd.sdq.respond.repository.`interface`
 
 import edu.kit.ipd.sdq.respond.repository.ProcessContent
-import edu.kit.ipd.sdq.respond.repository.ProcessDescriptor
+import edu.kit.ipd.sdq.respond.repository.tables.ProcessDescriptor
 
 interface Payload
 

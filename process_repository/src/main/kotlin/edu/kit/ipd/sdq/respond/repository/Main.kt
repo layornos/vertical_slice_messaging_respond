@@ -16,7 +16,7 @@ fun main(args: Array<String>) = mainBody("Repository") {
         setProperty("hibernate.connection.username", arguments.databaseUser)
         setProperty("hibernate.connection.password", arguments.databasePassword)
     }
-    val repository = Repository(configuration.buildSessionFactory())
+    val repository = HibernateRepository(configuration.buildSessionFactory())
     val interface_ = MqttRepositoryInterface(MqttClient(arguments.broker, "respond_repository"), repository)
 }
 
