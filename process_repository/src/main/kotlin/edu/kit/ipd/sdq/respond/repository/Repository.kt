@@ -11,12 +11,12 @@ typealias ProcessContent = String
 
 interface Repository {
     fun registerProcess(process: Process): Process
-    fun getProcess(processId: ProcessId, plant: Plant): Process
+    fun getProcess(processId: ProcessId, plant: Plant): Process?
     fun removeProcess(processId: ProcessId, plant: Plant)
     fun getProcesses(plant: Plant): List<ProcessDescriptor>
     fun removeAllProcesses(plant: Plant)
-    fun updateProcess(processId: ProcessId, plant: Plant, processContent: ProcessContent): Process
-    fun getPlant(plantPath: String): Plant
+    fun updateProcess(processId: ProcessId, plant: Plant, processContent: ProcessContent): Process?
+    fun getPlant(plantPath: String): Plant?
 }
 
 class HibernateRepository(private val sessionFactory: EntityManagerFactory) : Repository {
@@ -30,13 +30,13 @@ class HibernateRepository(private val sessionFactory: EntityManagerFactory) : Re
         return process
     }
 
-    override fun getProcess(processId: ProcessId, plant: Plant): Process {
+    override fun getProcess(processId: ProcessId, plant: Plant): Process? {
         val entityManager = sessionFactory.createEntityManager()
         val query = entityManager.createQuery("from Process  where plant_id = :plant and id = :id", Process::class.java)
         query.setParameter("plant", plant.id)
         query.setParameter("id", processId)
         query.executeUpdate()
-        return query.singleResult
+        return query.resultList.firstOrNull()
     }
 
     override fun removeProcess(processId: ProcessId, plant: Plant) {
@@ -66,21 +66,36 @@ class HibernateRepository(private val sessionFactory: EntityManagerFactory) : Re
         entityManager.close()
     }
 
-    override fun updateProcess(processId: ProcessId, plant: Plant, processContent: ProcessContent): Process {
+    override fun updateProcess(processId: ProcessId, plant: Plant, processContent: ProcessContent): Process? {
         val entityManager = sessionFactory.createEntityManager()
         entityManager.transaction.begin()
-        val process = getProcess(processId, plant)
+        val process = getProcess(processId, plant) ?: return null
         process.source = processContent
         entityManager.transaction.commit()
         entityManager.close()
         return process
     }
 
-    override fun getPlant(plantPath: String): Plant {
+    override fun getPlant(plantPath: String): Plant? {
         val entityManager = sessionFactory.createEntityManager()
         val query = entityManager.createQuery("select p from Plant p where path = :path", Plant::class.java)
         query.setParameter("path", plantPath)
-        return query.singleResult
+        return query.resultList.firstOrNull()
+    }
+
+    fun addPlant(plantPath: String): Plant {
+        val plant = getPlant(plantPath)
+        if (plant != null) {
+            return plant
+        }
+
+        val newPlant = Plant(plantPath)
+        val entityManager = sessionFactory.createEntityManager()
+        entityManager.transaction.begin()
+        entityManager.persist(newPlant)
+        entityManager.transaction.commit()
+        entityManager.close()
+        return newPlant
     }
 }
 

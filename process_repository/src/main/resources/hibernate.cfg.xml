@@ -14,7 +14,7 @@
         </property>
         <!-- Assume test is the database name -->
         <property name="hibernate.connection.url">
-            jdbc:mysql://172.17.0.2/respond?useUnicode=yes&amp;characterEncoding=UTF-8&amp;useJDBCCompliantTimezoneShift=true&amp;useLegacyDatetimeCode=false&amp;serverTimezone=UTC
+            jdbc:mysql://localhost/respond?useUnicode=yes&amp;characterEncoding=UTF-8&amp;useJDBCCompliantTimezoneShift=true&amp;useLegacyDatetimeCode=false&amp;serverTimezone=UTC
         </property>
         <property name="hibernate.connection.username">
             root

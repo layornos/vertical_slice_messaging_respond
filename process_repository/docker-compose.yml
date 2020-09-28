@@ -1,0 +1,15 @@
+version: "3.8"
+services:
+  mariadb:
+    image: "mariadb:10.5.5"
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD
+  repository:
+    build: .
+    restart: always
+    environment:
+      RESPOND_REPOSITORY_DATABASE_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
+      RESPOND_REPOSITORY_DATABASE: "jdbc:mysql://mariadb/respond?createDatabaseIfNotExist=true&useUnicode=yes&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC"
+      RESPOND_REPOSITORY_BROKER: "${BROKER}"
+      RESPOND_REPOSITORY_CREATE_DEMO_PLANTS: "${CREATE_DEMO_PLANTS}"

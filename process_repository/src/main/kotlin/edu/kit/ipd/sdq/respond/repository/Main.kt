@@ -17,21 +17,29 @@ fun main(args: Array<String>) = mainBody("Repository") {
         setProperty("hibernate.connection.password", arguments.databasePassword)
     }
     val repository = HibernateRepository(configuration.buildSessionFactory())
-    val interface_ = MqttRepositoryInterface(MqttClient(arguments.broker, "respond_repository"), repository)
+    if (arguments.createDemoPlants) {
+        repository.addPlant("default")
+        repository.addPlant("demo1")
+        repository.addPlant("demo2")
+    }
+    val `interface` = MqttRepositoryInterface(MqttClient(arguments.broker, "respond_repository"), repository)
 }
 
 class CommandLineArguments(parser: ArgParser) {
     val broker by parser.storing("--broker", "-b", help = "Url of the mqtt broker to use").default {
-        getEnvOrNull("BROKER") ?: "tcp://localhost"
+        getEnvOrNull("RESPOND_REPOSITORY_BROKER") ?: "tcp://localhost"
     }
     val database by parser.storing("--database", "-d", help = "Url of the database to use").default {
-        getEnvOrNull("DATABASE") ?: "jdbc:mysql://localhost/respond?useUnicode=yes&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC"
+        getEnvOrNull("RESPOND_REPOSITORY_DATABASE") ?: "jdbc:mysql://localhost/respond?useUnicode=yes&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC"
     }
     val databaseUser by parser.storing("--dbuser", "-u", help = "The username for connecting to the database").default {
-        getEnvOrNull("DATABASE_USER") ?: "root"
+        getEnvOrNull("RESPOND_REPOSITORY_DATABASE_USER") ?: "root"
     }
     val databasePassword by parser.storing("--dbpassword", "-p", help = "The password for connecting to the database").default {
-        getEnvOrNull("DATABASE_PASSWORD") ?: ""
+        getEnvOrNull("RESPOND_REPOSITORY_DATABASE_PASSWORD") ?: ""
+    }
+    val createDemoPlants by parser.flagging("--demo", help = "Creates demo plants on startup").default {
+        getEnvOrNull("RESPOND_REPOSITORY_CREATE_DEMO_PLANTS") == "1"
     }
 }
 

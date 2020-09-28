@@ -67,7 +67,9 @@ class MqttRepositoryInterface(private val client: MqttClient, private val reposi
         val payload = mqttMessage.toStringOrNull()
         if (id != null && payload != null) {
             val process = repository.updateProcess(id, plant, payload)
-            publishProcess(process, plant)
+            if (process != null) {
+                publishProcess(process, plant)
+            }
         }
     }
 
@@ -76,7 +78,7 @@ class MqttRepositoryInterface(private val client: MqttClient, private val reposi
             if (topic == null) return
 
             val prefixMatch = prefixRegex.matchEntire(topic) ?: return
-            val plant = repository.getPlant(prefixMatch.groupValues[1])
+            val plant = repository.getPlant(prefixMatch.groupValues[1]) ?: return
 
             val paths = PathMatcher(prefix = ".*/repository/") {
                 "new_process" { newProcess(mqttMessage, plant) }
