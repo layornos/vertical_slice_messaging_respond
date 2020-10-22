@@ -5,8 +5,8 @@ Deploying the repository
 
 Then you have multiple options:
 1. Deploy docker containers on your machine:
-    Run `./build.sh` from this directory to build the repository
-    Run `docker-compose up` in the `docker/` directory.
+    Run `./build.sh` from this directory to build the repository.
+    Then run `docker-compose up` in the `docker/` directory.
 
 
 2. Deploy a virtual machine with all the services installed:
