@@ -16,6 +16,7 @@ interface Repository {
     fun getProcesses(plant: Plant): List<ProcessDescriptor>
     fun removeAllProcesses(plant: Plant)
     fun updateProcess(processId: ProcessId, plant: Plant, processContent: ProcessContent): Process?
+    fun getPlants(): List<Plant>
     fun getPlant(plantPath: String): Plant?
 }
 
@@ -81,6 +82,13 @@ class HibernateRepository(private val sessionFactory: EntityManagerFactory) : Re
         val query = entityManager.createQuery("select p from Plant p where path = :path", Plant::class.java)
         query.setParameter("path", plantPath)
         return query.resultList.firstOrNull()
+    }
+
+    override fun getPlants(): List<Plant> {
+        val entityManager = sessionFactory.createEntityManager()
+        val query = entityManager.createQuery("from Plant", Plant::class.java)
+        return query.resultList
+
     }
 
     fun addPlant(plantPath: String): Plant {

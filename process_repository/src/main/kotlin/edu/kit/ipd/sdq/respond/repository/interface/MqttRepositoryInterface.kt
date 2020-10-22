@@ -18,6 +18,17 @@ class MqttRepositoryInterface(private val client: MqttClient, private val reposi
         client.connect()
         client.setCallback(this)
         client.subscribe("#")
+        // Publish existing processes at startup. Currently a bit inefficient on the database, but doesn't really
+        // matter, as it's only run at startup
+        repository.getPlants().forEach {plant ->
+            publishProcesses(plant)
+            repository.getProcesses(plant).forEach {processDescriptor ->
+                repository.getProcess(processDescriptor.id, plant)?.let {
+                    publishProcess(it, plant)
+                }
+            }
+        }
+
     }
 
     private fun publishProcesses(plant: Plant) {
