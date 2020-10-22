@@ -7,3 +7,6 @@ workspace/
 # mqtt library
 filling_station-tcp*/
 filling_station-udp*/
+
+#vagrant
+.vagrant/

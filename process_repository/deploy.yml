@@ -1,0 +1,38 @@
+---
+- hosts: localhost
+  tasks:
+    - name: Build repository
+      command: ./build.sh
+- hosts: respond_repository
+  become: yes
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+    - name: Install docker
+      apt:
+        name: docker.io
+        state: latest
+    - name: Install PyYAML
+      apt:
+        name: python-yaml
+        state: latest
+    - name: Install docker-compose
+      apt:
+        name: docker-compose
+        state: latest
+    - name: Create temp directory
+      file:
+        path: /tmp/ansible-respond-repository
+        state: directory
+    - name: Copy needed files to server
+      copy:
+        src: docker/
+        dest: /tmp/ansible-respond-repository/
+    - name: Set up docker containers
+      community.general.docker_compose:
+        project_name: respond-repository
+        project_src: /tmp/ansible-respond-repository
+        state: present
+
