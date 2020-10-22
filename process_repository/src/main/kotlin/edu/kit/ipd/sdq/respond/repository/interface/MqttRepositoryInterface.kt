@@ -27,11 +27,11 @@ class MqttRepositoryInterface(private val client: MqttClient, private val reposi
     }
 
     private fun publishProcess(process: Process, plant: Plant) {
-        client.publish("${plant.path}/repository/process/${process.id}", gson.toJson(process).toMqttMessage(true))
+        client.publish("${plant.path}/repository/process/get/${process.id}", gson.toJson(process).toMqttMessage(true))
     }
 
     private fun publishRemovedProcess(processId: ProcessId, plant: Plant) {
-        client.publish("${plant.path}/repository/process/$processId", MqttMessage().also { it.isRetained = true })
+        client.publish("${plant.path}/repository/process/get/$processId", MqttMessage().also { it.isRetained = true })
     }
 
     private fun newProcess(mqttMessage: MqttMessage?, plant: Plant) {
@@ -42,12 +42,11 @@ class MqttRepositoryInterface(private val client: MqttClient, private val reposi
         publishProcesses(plant)
     }
 
-    private fun deleteProcess(mqttMessage: MqttMessage?, plant: Plant) {
-        val processId = mqttMessage.toIntOrNull()
-        if (processId != null) {
-            repository.removeProcess(processId, plant)
+    private fun deleteProcess(id: Int?, plant: Plant) {
+        if (id != null) {
+            repository.removeProcess(id, plant)
             publishProcesses(plant)
-            publishRemovedProcess(processId, plant)
+            publishRemovedProcess(id, plant)
         }
     }
 
@@ -81,9 +80,9 @@ class MqttRepositoryInterface(private val client: MqttClient, private val reposi
             val plant = repository.getPlant(prefixMatch.groupValues[1]) ?: return
 
             val paths = PathMatcher(prefix = ".*/repository/") {
-                "new_process" { newProcess(mqttMessage, plant) }
-                "delete_process" { deleteProcess(mqttMessage, plant) }
-                "delete_all_processes" { deleteAllProcesses(mqttMessage, plant) }
+                "process/new" { newProcess(mqttMessage, plant) }
+                "process/delete/(\\d+)" { deleteProcess(it[0].toIntOrNull(), plant) }
+                "process/deleteAll" { deleteAllProcesses(mqttMessage, plant) }
                 "update/(\\d+)" { updateProcess(it[0].toIntOrNull(), mqttMessage, plant) }
                 default {
                     print("Unknown endpoint: $topic")
