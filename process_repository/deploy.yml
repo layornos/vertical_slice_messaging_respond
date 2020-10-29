@@ -35,4 +35,5 @@
         project_name: respond-repository
         project_src: /tmp/ansible-respond-repository
         state: present
+        build: yes
 
