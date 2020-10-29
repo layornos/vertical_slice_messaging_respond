@@ -6,6 +6,7 @@ import com.xenomachina.argparser.mainBody
 import edu.kit.ipd.sdq.respond.repository.client.Modes.*
 import edu.kit.ipd.sdq.respond.repository.`interface`.*
 import org.eclipse.paho.client.mqttv3.MqttClient
+import org.eclipse.paho.client.mqttv3.MqttMessage
 import java.io.File
 import kotlin.system.exitProcess
 
@@ -25,21 +26,21 @@ fun main(args: Array<String>) = mainBody("RepositoryClient") {
         SEND -> {
             val processName = arguments.process ?: missingParameter("process")
             val payload = NewProcessPayload(File(processName).readText(), processName)
-            client.publish("$plant/repository/new_process", gson.toJson(payload).toMqttMessage())
+            client.publish("${plant}repository/process/new", gson.toJson(payload).toMqttMessage())
         }
         DELETE -> {
-            val payload = arguments.id ?: missingParameter("id")
-            client.publish("$plant/repository/delete_process", payload.toMqttMessage())
+            val id = arguments.id ?: missingParameter("id")
+            client.publish("${plant}repository/process/delete/$id", MqttMessage())
         }
         UPDATE -> {
             val id = arguments.id ?: missingParameter("id")
             val processName = arguments.process ?: missingParameter("process")
             val payload = File(processName).readText()
-            client.publish("$plant/repository/update/$id", payload.toMqttMessage())
+            client.publish("${plant}repository/update/$id", payload.toMqttMessage())
         }
         DELETE_ALL -> {
             val payload = "YES"
-            client.publish("$plant/repository/delete_all_processes", payload.toMqttMessage())
+            client.publish("${plant}repository/processes/deleteAll", payload.toMqttMessage())
         }
     }
 

@@ -11,7 +11,7 @@ class ClientCommandLineArguments(parser: ArgParser) {
     val update by parser.flagging("--update", "-u", help = "Update a process")*/
     val mode by parser.mapping(Modes.getArgMap(), help = "What mode to operate in")
     val broker by parser.storing("--broker", "-b", help = "Url of the mqtt broker to use").default("tcp://localhost")
-    val plant by parser.storing("--plant", "-q", help = "Path of the plant to use").default("/default")
+    val plant by parser.storing("--plant", "-q", help = "Path of the plant to use").default("default")
     val process by parser.storing("--process", "-p", help = "A file representing a process").default { null }
     val id by parser.storing("--id", "-i", help = "The id of the process to operate on") { toIntOrNull() }.default { null }
 }
