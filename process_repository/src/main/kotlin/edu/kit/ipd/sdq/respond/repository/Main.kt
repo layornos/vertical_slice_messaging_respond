@@ -38,12 +38,18 @@ class CommandLineArguments(parser: ArgParser) {
     val databasePassword by parser.storing("--dbpassword", "-p", help = "The password for connecting to the database").default {
         getEnvOrNull("RESPOND_REPOSITORY_DATABASE_PASSWORD") ?: ""
     }
-    val createDemoPlants by parser.flagging("--demo", help = "Creates demo plants on startup").default {
-        getEnvOrNull("RESPOND_REPOSITORY_CREATE_DEMO_PLANTS") == "1"
-    }
+    // .default is not supported for flagging arguments
+    private val createDemoPlantsCli by parser.flagging("--demo", help = "Creates demo plants on startup")
+
+    val createDemoPlants = createDemoPlantsCli || getEnvOrDefault("RESPOND_REPOSITORY_CREATE_DEMO_PLANTS", "0") == "1"
 }
 
 fun getEnvOrNull(name: String): String? {
     val env = System.getenv()
     return if (env.containsKey(name)) env[name] else null
+}
+
+fun getEnvOrDefault(name: String, default: String): String {
+    val env = System.getenv()
+    return if (env.containsKey(name)) env[name]!! else default
 }
