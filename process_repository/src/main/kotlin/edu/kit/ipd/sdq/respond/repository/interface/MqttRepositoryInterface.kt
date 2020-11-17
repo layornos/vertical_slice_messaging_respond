@@ -1,6 +1,7 @@
 package edu.kit.ipd.sdq.respond.repository.`interface`
 
 import com.google.gson.Gson
+import edu.kit.ipd.sdq.respond.mqtt.PathMatcher
 import edu.kit.ipd.sdq.respond.repository.*
 import edu.kit.ipd.sdq.respond.repository.tables.Plant
 import edu.kit.ipd.sdq.respond.repository.tables.Process
@@ -32,13 +33,13 @@ class MqttRepositoryInterface(private val client: MqttClient, private val reposi
     }
 
     private fun publishProcesses(plant: Plant) {
-        val processes = repository.getProcesses(plant)
-        val payload = ProcessesPayload(processes)
-        client.publish("${plant.path}/repository/processes", gson.toJson(payload).toMqttMessage(true))
+        val processes = repository.getProcesses(plant).map { it.asPayload }
+        client.publish("${plant.path}/repository/processes", gson.toJson(processes).toMqttMessage(true))
     }
 
     private fun publishProcess(process: Process, plant: Plant) {
-        client.publish("${plant.path}/repository/process/get/${process.id}", gson.toJson(process).toMqttMessage(true))
+        val payload = process.asPayload
+        client.publish("${plant.path}/repository/process/get/${process.id}", gson.toJson(payload).toMqttMessage(true))
     }
 
     private fun publishRemovedProcess(processId: ProcessId, plant: Plant) {
