@@ -22,7 +22,7 @@ fun main(args: Array<String>) = mainBody("Repository") {
         repository.addPlant("demo1")
         repository.addPlant("demo2")
     }
-    val `interface` = MqttRepositoryInterface(MqttClient(arguments.broker, "respond_repository"), repository)
+    val `interface` = MqttRepositoryInterface(MqttClient(arguments.broker, MqttClient.generateClientId()), repository)
 }
 
 class CommandLineArguments(parser: ArgParser) {
