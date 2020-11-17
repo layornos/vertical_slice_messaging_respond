@@ -84,6 +84,20 @@ class MqttRepositoryInterface(private val client: MqttClient, private val reposi
         }
     }
 
+    private fun checkProcessCorrectness(id: Int?, mqttMessage: MqttMessage?, plant: Plant) {
+        if (id != null && mqttMessage != null) {
+            val currentProcess = gson.fromJson(mqttMessage.toStringOrNull(), ProcessPayload::class.java)
+            val actualProcess = repository.getProcess(id, plant)
+            if (actualProcess == null) {
+                publishRemovedProcess(id, plant)
+                return
+            }
+            if (currentProcess != actualProcess.asPayload) {
+                publishProcess(actualProcess, plant)
+            }
+        }
+    }
+
     override fun messageArrived(topic: String?, mqttMessage: MqttMessage?) {
         try {
             if (topic == null) return
@@ -96,6 +110,7 @@ class MqttRepositoryInterface(private val client: MqttClient, private val reposi
                 "process/delete/(\\d+)" { deleteProcess(it[0].toIntOrNull(), plant) }
                 "process/deleteAll" { deleteAllProcesses(mqttMessage, plant) }
                 "update/(\\d+)" { updateProcess(it[0].toIntOrNull(), mqttMessage, plant) }
+                "process/get/(\\d+)" { checkProcessCorrectness(it[0].toIntOrNull(), mqttMessage, plant) }
                 default {
                     print("Unknown endpoint: $topic")
                 }
