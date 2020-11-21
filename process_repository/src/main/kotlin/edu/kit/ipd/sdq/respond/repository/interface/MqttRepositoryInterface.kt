@@ -107,10 +107,10 @@ class MqttRepositoryInterface(private val client: MqttClient, private val reposi
 
             val paths = PathMatcher(prefix = ".*/repository/") {
                 "process/new" { newProcess(mqttMessage, plant) }
-                "process/delete/(\\d+)" { deleteProcess(it[0].toIntOrNull(), plant) }
+                "process/delete/([^/]+)" { deleteProcess(it[0].toIntOrNull(), plant) }
                 "process/deleteAll" { deleteAllProcesses(mqttMessage, plant) }
-                "update/(\\d+)" { updateProcess(it[0].toIntOrNull(), mqttMessage, plant) }
-                "process/get/(\\d+)" { checkProcessCorrectness(it[0].toIntOrNull(), mqttMessage, plant) }
+                "update/([^/]+)" { updateProcess(it[0].toIntOrNull(), mqttMessage, plant) }
+                "process/get/([^/]+)" { checkProcessCorrectness(it[0].toIntOrNull(), mqttMessage, plant) }
                 default {
                     print("Unknown endpoint: $topic")
                 }

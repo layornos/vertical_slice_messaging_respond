@@ -49,7 +49,7 @@ fun constructFillingStation(kodein: Kodein): FillingStation {
             instance(),
             instance(),
             listOfLambda(10) {
-                instance<Pump>() //Explicit generic needed because of type stripping at compile time
+                instance() //Explicit generic needed because of type stripping at compile time
             }
         )
     }
