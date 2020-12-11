@@ -1,0 +1,32 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy to server
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Decrypt config file
+        run: ./.github/scripts/decrypt_secret.sh
+        env:
+          SECRET_PASSPHRASE: ${{ secrets.CONFIG_ENCRYPTION_KEY }}
+          SECRET_NAME: 'config.yml'
+      - name: Run ansible
+        uses: dawidd6/action-ansible-playbook@v2.2.0
+        with:
+          playbook: 'playbook.yml'
+          directory: ./
+          key: ${{ secrets.SSH_KEY_SERVER_IUMS }}
+          inventory: |
+            [process_repository]
+            ${{ secrets.IUMS_SERVER_IP }} ansible_user=${{ IUMS_USER }}
+
+            [selfhealing]
+            ${{ secrets.IUMS_SERVER_IP }} ansible_user=${{ IUMS_USER }}

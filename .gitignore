@@ -10,3 +10,5 @@ filling_station-udp*/
 
 #vagrant
 .vagrant/
+
+.secret
