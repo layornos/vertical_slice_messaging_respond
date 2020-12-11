@@ -1,0 +1,22 @@
+---
+- hosts: broker
+  become: yes
+  vars_files:
+    - config.yml
+  roles:
+    - docker
+    - mosquitto
+- hosts: process_repository
+  become: yes
+  vars_files:
+    - config.yml
+  roles:
+    - docker
+    - process_repository
+- hosts: selfhealing
+  become: yes
+  vars_files:
+    - config.yml
+  roles:
+    - docker
+    - selfhealing

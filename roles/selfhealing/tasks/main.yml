@@ -1,0 +1,32 @@
+- name: Build repository
+  command: ./build.sh
+  args:
+    chdir: ./selfhealing/
+  delegate_to: localhost
+  become: no
+- name: Create temp directory
+  file:
+    path: /tmp/ansible-respond-selfhealing
+    state: directory
+- name: Copy needed files to server
+  copy:
+    src: selfhealing/docker/
+    dest: /tmp/ansible-respond-selfhealing/
+- name: Build docker image
+  community.general.docker_image:
+    name: respond-iot/selfhealing
+    build:
+      path: /tmp/ansible-respond-selfhealing
+      pull: yes
+    source: build
+    state: present
+    force_source: yes
+- name: Set up docker container
+  community.general.docker_container:
+    container_default_behavior: no_defaults
+    name: respond-selfhealing
+    image: respond-iot/selfhealing:latest
+    restart_policy: always
+    env:
+      RESPOND_SELFHEALING_BROKER: "{{BROKER}}"
+

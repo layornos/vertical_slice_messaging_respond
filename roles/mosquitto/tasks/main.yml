@@ -1,0 +1,29 @@
+- name: Create config directory
+  file:
+    path: /data/mosquitto/config
+    state: directory
+- name: Create data directory
+  file:
+    path: /data/mosquitto/data
+    state: directory
+- name: Create log directory
+  file:
+    path: /data/mosquitto/log
+    state: directory
+- name: Copy config file
+  template:
+    src: mosquitto.conf.j2
+    dest: /data/mosquitto/config/mosquitto.conf
+- name: Start container
+  community.general.docker_container:
+    container_default_behavior: no_defaults
+    name: mosquitto
+    image: eclipse-mosquitto:latest
+    restart_policy: always
+    published_ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - "/data/mosquitto/config:/mosquitto/config"
+      - "/data/mosquitto/data:/mosquitto/data"
+      - "/data/mosquitto/log:/mosquitto/log"

@@ -1,0 +1,16 @@
+- name: Update apt cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+- name: Install
+  apt:
+    name: docker.io
+    state: present
+- name: Install SDK for Python
+  apt:
+    name: python3-docker
+    state: present
+- name: Install PyYAML
+  apt:
+    name: python-yaml
+    state: present

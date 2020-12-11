@@ -1,0 +1,53 @@
+- name: Build repository
+  command: ./build.sh
+  args:
+    chdir: ./process_repository/
+  delegate_to: localhost
+  become: no
+- name: Create mariadb network
+  community.docker.docker_network:
+    name: mariadb
+- name: Start mariadb container
+  community.general.docker_container:
+    container_default_behavior: no_defaults
+    networks_cli_compatible: yes
+    name: mariadb
+    image: mariadb:latest
+    restart_policy: always
+    networks:
+      - name: mariadb
+    env:
+      MYSQL_ROOT_PASSWORD: "{{MYSQL_ROOT_PASSWORD}}"
+- name: Create temp directory
+  file:
+    path: /tmp/ansible-respond-repository
+    state: directory
+- name: Copy needed files to server
+  copy:
+    src: process_repository/docker/
+    dest: /tmp/ansible-respond-repository/
+- name: Build docker image
+  community.general.docker_image:
+    name: respond-iot/process-repository
+    build:
+      path: /tmp/ansible-respond-repository
+      pull: yes
+    source: build
+    state: present
+    force_source: yes
+- name: Set up docker container
+  community.general.docker_container:
+    container_default_behavior: no_defaults
+    networks_cli_compatible: yes
+    name: respond-process-repository
+    image: respond-iot/process-repository:latest
+    restart_policy: always
+    networks:
+      - name: mariadb
+      - name: bridge
+    env:
+      RESPOND_REPOSITORY_DATABASE_PASSWORD: "{{MYSQL_ROOT_PASSWORD}}"
+      RESPOND_REPOSITORY_DATABASE: "jdbc:mysql://mariadb/respond?createDatabaseIfNotExist=true&useUnicode=yes&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC"
+      RESPOND_REPOSITORY_BROKER: "{{BROKER}}"
+      RESPOND_REPOSITORY_CREATE_DEMO_PLANTS: "{{CREATE_DEMO_PLANTS}}"
+
