@@ -1,18 +1,19 @@
 import com.nhaarman.mockitokotlin2.*
+import edu.kit.ipd.sdq.respond.repository.ProcessDescriptor
 import edu.kit.ipd.sdq.respond.repository.Repository
 import edu.kit.ipd.sdq.respond.repository.`interface`.MqttRepositoryInterface
 import edu.kit.ipd.sdq.respond.repository.`interface`.toMqttMessage
 import edu.kit.ipd.sdq.respond.repository.tables.Plant
 import edu.kit.ipd.sdq.respond.repository.tables.Process
-import edu.kit.ipd.sdq.respond.repository.tables.ProcessDescriptor
 import io.kotest.core.spec.style.ExpectSpec
 import org.eclipse.paho.client.mqttv3.MqttClient
+import java.util.*
 
 class MqttRepositoryInterfaceTest  : ExpectSpec({
     val plantName = "default"
     val processName = "testprocess"
     val processContent = "content"
-    val processId = 123
+    val processId = UUID.randomUUID()
 
     context("new_process") {
         expect("interface should add process to repository") {
@@ -59,7 +60,7 @@ class MqttRepositoryInterfaceTest  : ExpectSpec({
             val client = mock<MqttClient>()
             val repository = mock<Repository> {
                 on { getPlant(plantName) } doReturn plant
-                on { getProcesses(plant) } doReturn listOf(ProcessDescriptor("test1", 1), ProcessDescriptor("test2", 2))
+                on { getProcesses(plant) } doReturn listOf(ProcessDescriptor("test1", UUID.randomUUID()), ProcessDescriptor("test2", UUID.randomUUID()))
             }
             val `interface` = MqttRepositoryInterface(client, repository)
 
@@ -78,13 +79,13 @@ class MqttRepositoryInterfaceTest  : ExpectSpec({
             val client = mock<MqttClient>()
             val repository = mock<Repository> {
                 on { getPlant(plantName) } doReturn plant
-                on { updateProcess(1, plant, processContent) } doReturn Process(processName, processContent, plant).also { it.id = 1 }
+                on { updateProcess(UUID.randomUUID(), plant, processContent) } doReturn Process(processName, processContent, plant).also { it.id = 1 }
             }
             val `interface` = MqttRepositoryInterface(client, repository)
 
             `interface`.messageArrived("default/repository/update/1", processContent.toMqttMessage())
 
-            verify(repository).updateProcess(1, plant, processContent)
+            verify(repository).updateProcess(UUID.randomUUID(), plant, processContent)
             verify(client).publish(eq("default/repository/process/1"), any())
         }
     }

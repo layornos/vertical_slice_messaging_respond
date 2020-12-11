@@ -10,6 +10,8 @@ import org.eclipse.paho.client.mqttv3.MqttCallback
 import org.eclipse.paho.client.mqttv3.MqttClient
 import org.eclipse.paho.client.mqttv3.MqttMessage
 import java.lang.Exception
+import java.lang.IllegalArgumentException
+import java.util.*
 
 class MqttRepositoryInterface(private val client: MqttClient, private val repository: Repository) : MqttCallback {
     private val gson = Gson()
@@ -39,7 +41,7 @@ class MqttRepositoryInterface(private val client: MqttClient, private val reposi
 
     private fun publishProcess(process: Process, plant: Plant) {
         val payload = process.asPayload
-        client.publish("${plant.path}/repository/process/get/${process.id}", gson.toJson(payload).toMqttMessage(true))
+        client.publish("${plant.path}/repository/process/get/${process.uuid}", gson.toJson(payload).toMqttMessage(true))
     }
 
     private fun publishRemovedProcess(processId: ProcessId, plant: Plant) {
@@ -54,7 +56,7 @@ class MqttRepositoryInterface(private val client: MqttClient, private val reposi
         publishProcesses(plant)
     }
 
-    private fun deleteProcess(id: Int?, plant: Plant) {
+    private fun deleteProcess(id: UUID?, plant: Plant) {
         if (id != null) {
             repository.removeProcess(id, plant)
             publishProcesses(plant)
@@ -74,7 +76,7 @@ class MqttRepositoryInterface(private val client: MqttClient, private val reposi
         }
     }
 
-    private fun updateProcess(id: Int?, mqttMessage: MqttMessage?, plant: Plant) {
+    private fun updateProcess(id: UUID?, mqttMessage: MqttMessage?, plant: Plant) {
         val payload = mqttMessage.toStringOrNull()
         if (id != null && payload != null) {
             val process = repository.updateProcess(id, plant, payload)
@@ -84,7 +86,7 @@ class MqttRepositoryInterface(private val client: MqttClient, private val reposi
         }
     }
 
-    private fun checkProcessCorrectness(id: Int?, mqttMessage: MqttMessage?, plant: Plant) {
+    private fun checkProcessCorrectness(id: UUID?, mqttMessage: MqttMessage?, plant: Plant) {
         if (id != null && mqttMessage != null) {
             val currentProcess = gson.fromJson(mqttMessage.toStringOrNull(), ProcessPayload::class.java)
             val actualProcess = repository.getProcess(id, plant)
@@ -107,10 +109,10 @@ class MqttRepositoryInterface(private val client: MqttClient, private val reposi
 
             val paths = PathMatcher(prefix = ".*/repository/") {
                 "process/new" { newProcess(mqttMessage, plant) }
-                "process/delete/(\\d+)" { deleteProcess(it[0].toIntOrNull(), plant) }
+                "process/delete/([^/]+)" { deleteProcess(it[0].toUUIDOrNull(), plant) }
                 "process/deleteAll" { deleteAllProcesses(mqttMessage, plant) }
-                "update/(\\d+)" { updateProcess(it[0].toIntOrNull(), mqttMessage, plant) }
-                "process/get/(\\d+)" { checkProcessCorrectness(it[0].toIntOrNull(), mqttMessage, plant) }
+                "update/([^/]+)" { updateProcess(it[0].toUUIDOrNull(), mqttMessage, plant) }
+                "process/get/([^/]+)" { checkProcessCorrectness(it[0].toUUIDOrNull(), mqttMessage, plant) }
                 default {
                     print("Unknown endpoint: $topic")
                 }
@@ -136,3 +138,11 @@ fun String.toMqttMessage(retained: Boolean = false) = MqttMessage(this.toByteArr
 fun Any.toMqttMessage(retained: Boolean = false) = this.toString().toMqttMessage(retained)
 fun MqttMessage?.toStringOrNull(): String? = this?.payload?.decodeToString()
 fun MqttMessage?.toIntOrNull(): Int? = this.toStringOrNull()?.toIntOrNull()
+fun String.toUUIDOrNull(): UUID? {
+    return try {
+        UUID.fromString(this)
+    }
+    catch (e: IllegalArgumentException) {
+        null
+    }
+}

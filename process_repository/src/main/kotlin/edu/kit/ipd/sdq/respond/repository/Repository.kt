@@ -2,9 +2,10 @@ package edu.kit.ipd.sdq.respond.repository
 
 import edu.kit.ipd.sdq.respond.repository.tables.Plant
 import edu.kit.ipd.sdq.respond.repository.tables.Process
+import java.util.*
 import javax.persistence.EntityManagerFactory
 
-typealias ProcessId = Int
+typealias ProcessId = UUID
 typealias ProcessContent = String
 
 interface Repository {
@@ -105,8 +106,8 @@ class HibernateRepository(private val sessionFactory: EntityManagerFactory) : Re
     }
 }
 
-class ProcessDescriptor(val name: String, val id: Int)
+class ProcessDescriptor(val name: String, val id: UUID)
 
 val Process.processDescriptor: ProcessDescriptor
-    get() = ProcessDescriptor(this.name, this.id)
+    get() = ProcessDescriptor(this.name, this.uuid)
 

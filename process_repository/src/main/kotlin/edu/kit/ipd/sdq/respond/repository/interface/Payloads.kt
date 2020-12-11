@@ -13,7 +13,7 @@ class ProcessesPayload(val processes: List<ProcessDescriptorPayload>) : Payload
 
 class ProcessPayload(val name: String, val source: String, val definitionId: UUID)
 
-class ProcessDescriptorPayload(val name: String, val definitionId: Int)
+class ProcessDescriptorPayload(val name: String, val definitionId: UUID)
 
 val ProcessDescriptor.asPayload: ProcessDescriptorPayload
     get() = ProcessDescriptorPayload(this.name, this.id)
