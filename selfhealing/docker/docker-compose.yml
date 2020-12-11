@@ -1,0 +1,7 @@
+version: "3.7"
+services:
+  selfhealing:
+    build: .
+    restart: always
+    environment:
+      RESPOND_SELFHEALING_BROKER: "${BROKER}"
